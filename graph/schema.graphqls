@@ -1,0 +1,149 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+directive @goField(
+  forceResolver: Boolean
+  name: String
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @auth on FIELD_DEFINITION
+
+scalar Any
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  password: String
+}
+
+input NewUser {
+  name: String!
+  email: String!
+  password: String!
+}
+
+type AuthOps {
+  login(input: credsLogin!): Any! @goField(forceResolver: true)
+  register(input: NewUser!): Any! @goField(forceResolver: true)
+}
+
+input credsLogin {
+  email: String!
+  password: String!
+}
+
+type ItemRequires {
+  id: ID!
+  name: String!
+  qty: Int!
+}
+
+type ItemRequire {
+  id: ID!
+  qty: Int!
+}
+
+input RequestedItemInput {
+  id: ID!
+  qty: Int!
+}
+
+type RequestedItem {
+  id: ID!
+  qty: Int!
+  name: String
+}
+
+type Item {
+  id: ID!
+  name: String!
+  stock: Int!
+  category: String!
+  requires: [RequestedItem]
+  RequestedItem: [RequestedItem]
+}
+
+input NewItem {
+  name: String!
+  stock: Int!
+  category: String!
+  requires: [RequestedItemInput]
+}
+
+type Issue {
+  id: ID!
+  createdBy: String!
+  title: String!
+  description: String!
+  status: String!
+  requestedItem: [ItemRequires]
+}
+
+input NewIssues {
+  createdBy: String!
+  title: String!
+  description: String!
+  status: String!
+  requestedItem: [RequestedItemInput]
+}
+
+type ItemReceived {
+  id: ID!
+  name: String!
+  qty: Int!
+}
+
+type Receive {
+  id: ID
+  createdBy: String!
+  description: String!
+  itemReceived: [ItemReceived]!
+}
+
+input ItemReceivedInput {
+  id: ID!
+  qty: Int!
+}
+
+input ReceiveInput {
+  createdBy: String!
+  description: String!
+  itemReceived: [ItemReceivedInput]!
+}
+
+type Receives {
+  ID: ID!
+  CreatedBy: String!
+  Description: String!
+  ItemReceived: [ItemReceived]
+}
+
+input ProcessIssue {
+  id: ID!
+  status: String!
+}
+
+type Mutation {
+  createItem(input: NewItem!): Item! @auth
+  deleteItem(id: ID!): Boolean @auth
+  
+  createIssue(input: NewIssues!): Issue! @auth
+  processIssue(input: ProcessIssue!): Issue @auth
+
+  createReceive(input: ReceiveInput!): Receive! @auth
+  auth: AuthOps!
+}
+
+type Query {
+  Receives: [Receives!]! @auth
+  Receive(id: ID!): Receive! @auth
+
+  
+  issues: [Issue!]! @auth
+  issue(id: ID!): Issue! @auth
+
+
+  items: [Item!]! @auth
+  item(id: ID!): Item! @auth
+}
